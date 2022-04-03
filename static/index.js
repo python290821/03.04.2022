@@ -4,7 +4,7 @@ function add_customer() {
     console.log('==========================')
     //$.ajax({url:"/customers"})
     customer = {
-        id: $('#txt_id').val(),
+        id: parseInt($('#txt_id').val()),
         name: $('#txt_name').val(),
         address: $('#txt_address').val(),
         email: $('#txt_email').val()
@@ -19,6 +19,7 @@ function add_customer() {
             success: function(data, status){
                 console.log('status', status)
                 console.log('data', data)
+                get_all_customers(true)
             },
             error: function (xhr, desc, err) {
             }
@@ -37,19 +38,31 @@ function get_customer_by_id() {
 }
 
 function update_customer(customer) {
-
+    // homework
 }
 
-function delete_customer(customer) {
-    console.log(`send ajax to delete ${customer.id}`)
+function delete_customer(id) {
+    console.log(`send ajax to delete where customer id = ${id}`)
+
     // delete the customer
+    $.ajax({
+            type: "DELETE",
+            url: "/customers/" + id,
+            success: function(data, status){
+                console.log('status', status)
+                console.log('data', data)
+                get_all_customers(false)
+            },
+            error: function (xhr, desc, err) {
+            }
+            });
 }
 
-$(document).ready(function()
-{
-    $('#btn1').on('click', () => {
+function get_all_customers(draw_last_only) {
+        var customers_table =  $("#customers"); //cache
 
-        var customers =  $("#customers"); //cache
+        if (!draw_last_only)
+            customers_table.find("tr:gt(0)").remove();
 
         $.ajax({url:"/customers"}).then(
                 function(_customers) // after-promise succeed
@@ -59,17 +72,27 @@ $(document).ready(function()
                     console.log(_customers[0])
 
                    $.each(_customers,  (i, customer) => {
-                                customers.append(
+                            if (!draw_last_only || i == _customers.length - 1) {
+                                customers_table.append(
                                     `<tr><td>${customer.id}</td>
                                          <td>${customer.name}</td>
                                          <td>${customer.address}</td>
                                          <td>${customer.email}</td>
-                                         <td><button style="color:red" onclick="delete_customer(${customer})">X</button></td></tr>`)
+                                         <td><button style="color:red" onclick="delete_customer(${customer.id})">X</button></td></tr>`)
+                                         };
                     })
                 }
                 ,function(err)   // after-promise failed
                 {
                     console.log(err);}
                 );
+}
+
+$(document).ready(function()
+{
+    $('#btn1').on('click', () => {
+
+        get_all_customers(false);
+
     });
 });
